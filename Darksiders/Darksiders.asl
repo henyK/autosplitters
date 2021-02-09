@@ -86,9 +86,13 @@ state("darksiders1")
 
 startup
 {
-  vars.debug = true;
+  // If this is set to false, none of the debug types listed below will be processed.
+  vars.debug = false;
+
+  vars.debugHStrings = true;
   vars.debugFloatDelta = false;
-  vars.debugPrintDictsAfterSegmentChanges = true;
+  vars.debugPlayerPosition = false;
+  vars.debugDictChanges = true;
 
   // ==========================================================
   // Helper functions
@@ -274,14 +278,17 @@ startup
     if (lastSplitCutsceneSegmentId > lastSplitPPositionSegmentId) {
       vars.filteredSplittableCutscenes[lastSplitCutsceneSegment.Key] =
         vars.ToggleCutsceneSegmentAndGetNewTupleCopy(lastSplitCutsceneSegment.Value, lastSplitCutsceneSegmentId);
+
+      if (vars.debugDictChanges) {
+        vars.PrintCutsceneDictDebug(vars.filteredSplittableCutscenes, "Event UndoSplit => filteredSplittableCutscenes");
+      }
     } else if (lastSplitCutsceneSegmentId < lastSplitPPositionSegmentId) {
       vars.filteredSplittablePlayerPositions[lastSplitPPositionSegment.Key] =
         vars.TogglePlayerPositionSegmentAndGetNewListCopy(lastSplitPPositionSegment.Value, lastSplitPPositionSegmentId);
-    }
 
-    if (vars.debugPrintDictsAfterSegmentChanges) {
-      vars.PrintCutsceneDictDebug(vars.filteredSplittableCutscenes, "Event UndoSplit => filteredSplittableCutscenes");
-      vars.PrintPlayerPositionDictDebug(vars.filteredSplittablePlayerPositions, "Event UndoSplit => filteredSplittablePlayerPositions");
+      if (vars.debugDictChanges) {
+        vars.PrintPlayerPositionDictDebug(vars.filteredSplittablePlayerPositions, "Event UndoSplit => filteredSplittablePlayerPositions");
+      }
     }
   });
 
@@ -297,14 +304,17 @@ startup
     if (firstUnsplitCutsceneSegmentId < firstUnsplitPPositionSegmentId) {
       vars.filteredSplittableCutscenes[firstUnsplitCutsceneSegment.Key] =
         vars.ToggleCutsceneSegmentAndGetNewTupleCopy(firstUnsplitCutsceneSegment.Value, firstUnsplitCutsceneSegmentId);
+
+      if (vars.debugDictChanges) {
+        vars.PrintCutsceneDictDebug(vars.filteredSplittableCutscenes, "Event NextSplit => filteredSplittableCutscenes");
+      }
     } else if (firstUnsplitCutsceneSegmentId > firstUnsplitPPositionSegmentId) {
       vars.filteredSplittablePlayerPositions[firstUnsplitPPositionSegment.Key] =
         vars.TogglePlayerPositionSegmentAndGetNewListCopy(firstUnsplitPPositionSegment.Value, firstUnsplitPPositionSegmentId);
-    }
-
-    if (vars.debugPrintDictsAfterSegmentChanges) {
-      vars.PrintCutsceneDictDebug(vars.filteredSplittableCutscenes, "filteredSplittableCutscenes after NextSplit");
-      vars.PrintPlayerPositionDictDebug(vars.filteredSplittablePlayerPositions, "filteredSplittablePlayerPositions after NextSplit");
+        
+      if (vars.debugDictChanges) {
+        vars.PrintPlayerPositionDictDebug(vars.filteredSplittablePlayerPositions, "Event NextSplit => filteredSplittablePlayerPositions");
+      }
     }
   });
 
@@ -555,18 +565,25 @@ exit
 
 update
 {
-  // Debug output to show the HStrings of FMV cutscenes & regular in-game cinematics
   if (vars.debug) {
-    if (current.fmvCutsceneHString != 0) {
-      if (current.fmvCutsceneHString != old.fmvCutsceneHString) {
-        print(DateTime.Now.ToString("HH:mm:ss") + " - FMV Cutscene: " + current.fmvCutsceneHString.ToString("X"));
+
+    // Debug output to show the HStrings of FMV cutscenes & regular in-game cinematics.
+    if (vars.debugHStrings) {
+      if (current.fmvCutsceneHString != 0) {
+        if (current.fmvCutsceneHString != old.fmvCutsceneHString) {
+          print(DateTime.Now.ToString("HH:mm:ss") + " - FMV Cutscene: " + current.fmvCutsceneHString.ToString("X"));
+        }
+      }
+
+      if (current.ingameCinematicHString != 0) {
+        if (current.ingameCinematicHString != old.ingameCinematicHString) {
+          print(DateTime.Now.ToString("HH:mm:ss") + " - In-game Cinematic: " + current.ingameCinematicHString.ToString("X"));
+        }
       }
     }
 
-    if (current.ingameCinematicHString != 0) {
-      if (current.ingameCinematicHString != old.ingameCinematicHString) {
-        print(DateTime.Now.ToString("HH:mm:ss") + " - In-game cinematic: " + current.ingameCinematicHString.ToString("X"));
-      }
+    if (vars.debugPlayerPosition) {
+      print("Player Position (X/Y/Z): " + current.playerX + "/" + current.playerY + "/" + current.playerZ + ", Player Rotation (X/Y): " + current.playerRotationX + "/" + current.playerRotationY);
     }
   }
 
