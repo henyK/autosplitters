@@ -3,10 +3,29 @@
  * Tested only with the current version of the game's Steam releases
  *
  * Features:
- * - Pauses the timer upon saving and loading (for save games & triggers zones)
- * - Supports both the original version and the Warmastered Edition (only on Steam)
- * - Pauses the timer upon game exit/crash and resumes it after restarting the game
- * - Automatically splits upon reaching certain points of the run (adjustable via settings)
+ * - Pauses the timer upon saving and loading (for save games & trigger zones).
+ * - Supports both the original version and the Warmastered Edition (only on Steam).
+ * - Pauses the timer upon game exit/crash and resumes it after restarting the game.
+ * - Automatically splits upon reaching certain points of the run (adjustable via settings).
+ * 
+ * Note:
+ * Darksiders uses a rather complex loading system that combines regular loading of savegames, different in-game areas being loaded/unloaded by
+ * activating certain trigger zones and some kind of dynamic streaming in the background. For the no loads functionality the following types are relevant:
+ * - Regular Savegame Loading: Happens every time the player loads a savegame through the menu ("Data/Load Game"). To detect this kind of loading we use a
+ *                             specific fixed value of the hashed string that identifies the current Scaleform HUD overlay window.
+ * - Regular Savegame Saving: Happens when the player saves a savegame through the menu ("Data/Save Game"). To detect this kind of saving we use the pointer
+ *                            "savingViaMenu". The actual saving process usually only takes a very short time. For the ease of handling it, the timer is paused
+ *                            until "Saving Completed." appears on screen.
+ * - Area Loading: Happens when the player moves into a specific trigger zone that loads a nearby area. This kind of loading is noticeable because it freezes
+ *                 the game with an orange loading circle appearing on the left side of the screen. To detect this kind of loading we use the pointer
+ *                 "loadingNewArea", which is 0 whenever this happens, combined with some other pointers (to prevent incorrect pausing in other occasions).
+ * - Streaming: Happens dynamically in certain spots of the game but to our knowledge does not actually differ for players with different hardware or make a
+ *              difference for the timing. An example is the variable-length blackscreen when entering Iron Canopy that can appear before the FMV cutscene.
+ *              Combined with the actual time the FMV is being displayed on screen, the length always matches up.
+ * - Fake Loading: In certain situtations, like when being teleported to a Serpent Path, the game displays blue rings in the middle of the screen that look as
+ *                 if something was loading. Another example is the circle displayed when Vulgrim's shop menu appears. The duration of these "transitions" is
+ *                 fixed, so they have no impact on the timing.
+ * - Autosaving: Happens in certain spots of the game but does not freeze gameplay, so the timer is not paused.
  */
 
 // Original Version - Steam, Current Version (v1.1)
@@ -15,7 +34,7 @@ state("DarksidersPC")
   // Contains a hashed string (HString) that identifies the current Scaleform overlay window  
   ulong scaleformHString : "DarksidersPC.exe", 0x0122F6A4, 0x34, 0x28; 
 
-  // 0 if a game-freezing, in-game loading zone is triggered (as well as when the game is paused), 1 during normal gameplay
+  // 0 if a game-freezing, loading zone is triggered (as well as in some other occasions), 1 during normal gameplay
   bool loadingNewArea : "DarksidersPC.exe", 0x122DD6C, 0x30;
 
   // 1 if the game is saving (and sometimes if a save is loaded) 
@@ -108,8 +127,8 @@ startup
 
   vars.BuildSegmentDictionaries = (Action) (() => {
 
-    // Create list of FMV cutscenes and in-game cinematics to split for
-    // These HStrings are consistent across all game versions & patches on Steam
+    // Create a list of FMV cutscenes and in-game cinematics to split for.
+    // These HStrings are consistent across all game versions & patches on Steam.
     vars.allSplittableCutscenes = new Dictionary<ulong, Tuple<int, string, int, bool>>() {
       { (ulong)0xE92FB4FCE40C1764, vars.CreateCutsceneTuple(0, "mayhem", 0) },
       { (ulong)0xE767A830E42B171C, vars.CreateCutsceneTuple(1, "seraphimHotel", 0) },
@@ -124,8 +143,8 @@ startup
       { (ulong)0xCD398C4482DB85F8, vars.CreateCutsceneTuple(16, "theDestroyer", 0) }
     };
 
-    // Create list of cutscenes to split for which are only detectable through player position/rotation
-    // These HStrings are consistent across all game versions & patches on Steam
+    // Create a list of cutscenes to split for which are only detectable through player position/rotation.
+    // These HStrings are consistent across all game versions & patches on Steam.
     vars.allSplittablePlayerPositions = new Dictionary<ulong, List<Tuple<int, string, int, bool, float[]>>>();
     vars.AddSplittablePlayerPosition((ulong)0x1FD50437D4102AE3, 4, "autoscroller", 0, 16247.88f, -26176.85f, 1622.47f, -48.64708f, -15.35381f, 7.0f);
     vars.AddSplittablePlayerPosition((ulong)0x5A83535B20615774, 5, "crossblade", 0, 29841.28f, -26407.39f, -630.1481f, -76.79177f, 8.623878f, 1.0f);
@@ -135,7 +154,7 @@ startup
     vars.AddSplittablePlayerPosition((ulong)0x2000205131215855, 13, "silitha", 0, -22391.2f, 17766.84f, 93.19632f, 95.54919f, -1.946976f, 7.5f);
   });
 
-  // A tuple is used as a workaround because we can't create our own structs/data types with ASL
+  // A tuple is used as a workaround because we can't create our own structs/data types with ASL.
   // Cutscene tuple structure: (segmentId, identifier, delayInMs, alreadySplit)
   // Player position tuple structure:
   // (segmentId, identifier, delayInMs, alreadySplit, [playerX, playerY, playerZ, playerRotationX, playerRotationY, floatComparisonDelta])
@@ -155,7 +174,8 @@ startup
     return Tuple.Create(segmentId, identifier, delayInMs, false);
   });
 
-  // Regular Tuples are immutable so we unfortunately have to create a copy if the "alreadySplit" flag is supposed to be toggled (ASL is C# 5.0)
+  // Regular Tuples are immutable so we unfortunately have to create a copy if the "alreadySplit" flag is supposed to be toggled.
+  // ASL is based on C# 5.0 so we can't use other (mutable) tuple types.
   vars.ToggleCutsceneSegmentAndGetNewTupleCopy = (Func<Tuple<int, string, int, bool>, int, Tuple<int, string, int, bool>>) ((tuple, segmentId) => {
       return Tuple.Create(tuple.Item1, tuple.Item2, tuple.Item3, !tuple.Item4);
   });
@@ -169,8 +189,8 @@ startup
       return toggledSplitTupleList.Union(list.Where(tuple => tuple.Item1 != segmentId)).ToList();
   });
 
-  // Find the cutscene segment that is either the one with the highest split ID of all already split segments (split mode: UndoSplit)
-  // or the one with the lowest split ID of all unsplit segments (split mode: NextSplit)
+  // Find the cutscene segment that is either the one with the highest segment ID of all already split for segments (split mode: UndoSplit)
+  // or the one with the lowest segment ID of all unsplit segments (split mode: NextSplit).
   vars.GetBoundaryCutsceneSegmentForSplitMode = (Func<string, KeyValuePair<ulong, Tuple<int, string, int, bool>>>) ((splitMode) => {
     Dictionary<ulong, Tuple<int, string, int, bool>> cutsceneDict = vars.filteredSplittableCutscenes;
 
@@ -193,8 +213,8 @@ startup
     return boundarySegment;
   });
 
-  // Find the player position segment that is either the one with the highest split ID of all already split segments (split mode: UndoSplit)
-  // or the one with the lowest split ID of all unsplit segments (split mode: NextSplit)
+  // Find the player position segment that is either the one with the highest segment ID of all already split for segments (split mode: UndoSplit)
+  // or the one with the lowest segment ID of all unsplit segments (split mode: NextSplit)
   vars.GetBoundaryPlayerPositionSegmentForSplitMode = (Func<string, Tuple<KeyValuePair<ulong, List<Tuple<int, string, int, bool, float[]>>>, int>>)
     ((splitMode) => {
       var boundarySegment = new KeyValuePair<ulong, List<Tuple<int, string, int, bool, float[]>>>(0, null);
@@ -219,7 +239,7 @@ startup
       return Tuple.Create(boundarySegment, boundarySegmentId);
   });
 
-  // An adjustable delta is necessary because of LiveSplit's accuracy with respect to certain game situations
+  // An adjustable delta is necessary because of LiveSplit's accuracy with respect to certain game situations.
   vars.compareFloats = (Func<float, float, float, bool>) ((a, b, delta) => {
     if (vars.debug) {
       float printDelta = Math.Abs(a - b);
@@ -242,7 +262,7 @@ startup
     vars.ResetVariables();
   });
 
-  // Toggle the "alreadySplit" flag of the last split for segment
+  // Toggle the "alreadySplit" flag of the last split for segment.
   vars.OnUndoSplit = (EventHandler) ((s, e) => {
     var lastSplitCutsceneSegment = vars.GetBoundaryCutsceneSegmentForSplitMode(vars.UndoSplit);
     int lastSplitCutsceneSegmentId = lastSplitCutsceneSegment.Key == 0 ? -1 : lastSplitCutsceneSegment.Value.Item1;
@@ -401,7 +421,7 @@ init
     }
   });
 
-  // Returns a list of FMV cutscenes and in-game cinematics to split for that is synchronized with the ASL settings
+  // Returns a list of FMV cutscenes and in-game cinematics to split for that is synchronized with the ASL settings.
   vars.GetFilteredSplittableCutscenes = (Func<Dictionary<ulong, Tuple<int, string, int, bool>>>) (() => {
     var filteredDict = new Dictionary<ulong, Tuple<int, string, int, bool>>();
 
@@ -424,7 +444,7 @@ init
     return filteredDict;
   });
 
-  // Returns a list of player positions to split for that is synchronized with the ASL settings
+  // Returns a list of player positions to split for that is synchronized with the ASL settings.
   vars.GetFilteredSplittablePlayerPositions = (Func<Dictionary<ulong, List<Tuple<int, string, int, bool, float[]>>>>) (() => {
     var filteredDict = new Dictionary<ulong, List<Tuple<int, string, int, bool, float[]>>>();
 
@@ -519,8 +539,6 @@ init
   }
 }
 
-
-
 start
 {
   return vars.secondIntroFmvCutscenePlayed;
@@ -528,7 +546,7 @@ start
 
 exit
 {
-  // Pause Game Time in case of a game crash/exit
+  // Pause Game Time in case of a game crash/exit.
   if (timer.CurrentPhase == TimerPhase.Running) {
     vars.gameExited = true;
     timer.IsGameTimePaused = true;
@@ -552,19 +570,19 @@ update
     }
   }
 
-  // Resume timer once the main menu is shown after a restart of the game
-  // As unfortunate as crashes may be, we have to add a time penalty (in form of the main menu being counted) to avoid game exit abuse
+  // Resume the timer once the main menu is shown after a restart of the game. As unfortunate as crashes may be, we have to add a time
+  // penalty (in form of the main menu being counted) to avoid game exit abuse.
   if (vars.gameExited && timer.IsGameTimePaused && current.playingFmvCutscene && current.fmvCutsceneHString == vars.XboxLegalFmvCutsceneHString) {
     vars.gameExited = false;
     timer.IsGameTimePaused = false;
   }
 
-  // Detect the end of the second intro cutscene
+  // Detect the end of the second intro cutscene.
   if (old.fmvCutsceneHString != current.fmvCutsceneHString && old.fmvCutsceneHString == vars.IntroPartTwoFmvCutsceneHString) {
     vars.secondIntroFmvCutscenePlayed = true;
   }
 
-  // Pause/unpause stopwatches if the player pauses within a splittable cutscene
+  // Pause/unpause stopwatch if the player pauses within a splittable cutscene.
   if (vars.stopwatch.IsRunning || vars.pausedStopwatch) {
     if (current.pausing) {
       vars.pausedStopwatch = true;
@@ -606,7 +624,7 @@ split
       hString = current.ingameCinematicHString;
     }
 
-    // Split for FMV cutscenes & regular in-game cinematics
+    // Split for FMV cutscenes & regular in-game cinematics.
     if (hString != 0) {
       var tuple = vars.filteredSplittableCutscenes[hString];
       string identifier = tuple.Item2;
@@ -620,7 +638,7 @@ split
       }
     }
 
-    // Split for special in-game cinematics that we can only detect through player position/rotation
+    // Split for special in-game cinematics that we can only detect through player position/rotation.
     List<Tuple<int, string, int, bool, float[]>> segments = null;
     if (vars.filteredSplittablePlayerPositions.TryGetValue(current.spawnRegion, out segments)) {
       foreach (var segment in segments) {
