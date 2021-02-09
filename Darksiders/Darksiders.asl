@@ -151,10 +151,10 @@ startup
     // These HStrings are consistent across all game versions & patches on Steam.
     vars.allSplittablePlayerPositions = new Dictionary<ulong, List<Tuple<int, string, int, bool, float[]>>>();
     vars.AddSplittablePlayerPosition((ulong)0x1FD50437D4102AE3, 4, "autoscroller", 0, 16247.88f, -26176.85f, 1622.47f, -48.64708f, -15.35381f, 7.0f);
-    vars.AddSplittablePlayerPosition((ulong)0x5A83535B20615774, 5, "crossblade", 0, 29841.28f, -26407.39f, -630.1481f, -76.79177f, 8.623878f, 1.0f);
-    vars.AddSplittablePlayerPosition((ulong)0x4B0A6F62DCB93232, 7, "tremorGauntlet", 0, -38980.24f, -42848.44f, -2155.23f, -179.3368f, 18.12865f, 1.0f);
-    vars.AddSplittablePlayerPosition((ulong)0xB6ABD72087D448B2, 11, "theStygian", 0, 9613.245f, 51410.0f, -374.48f, -9.786468f, 12.17409f, 1.0f);
-    vars.AddSplittablePlayerPosition((ulong)0x2000205131215855, 12, "abyssalChain", 0, -30940.53f, 20022.96f, 1332.317f, -1.459282f, 25.53297f, 1.00f);
+    vars.AddSplittablePlayerPosition((ulong)0x5A83535B20615774, 5, "crossblade", 0, 29841.28f, -26407.39f, -630.1481f, -76.7574f, 8.900909f, 0.2f);
+    vars.AddSplittablePlayerPosition((ulong)0x4B0A6F62DCB93232, 7, "tremorGauntlet", 0, -38980.24f, -42848.44f, -2155.23f, -179.1298f, 13.96764f, 0.7f);
+    vars.AddSplittablePlayerPosition((ulong)0xB6ABD72087D448B2, 11, "theStygian", 1900, 9618.668f, 51332.45f, -106.5894f, -87.8582f, 3.5392f, 1.0f);
+    vars.AddSplittablePlayerPosition((ulong)0x2000205131215855, 12, "abyssalChain", 0, -30940.53f, 20022.96f, 1332.317f, -1.459282f, 25.53297f, 0.5f);
     vars.AddSplittablePlayerPosition((ulong)0x2000205131215855, 13, "silitha", 0, -22391.2f, 17766.84f, 93.19632f, 95.54919f, -1.946976f, 7.5f);
   });
 
