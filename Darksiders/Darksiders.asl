@@ -520,11 +520,10 @@ init
       if (timer.Run.Count != autosplitCount) {
         MessageBox.Show(
           timer.Form,
-          "You have enabled " + autosplitCount + " autosplitter segments in the settings but have set up"
-            + (notEnoughActualSegments ? " only " : " ") + timer.Run.Count + " actual split segments.\n"
-            + "For the autosplitter to work correctly make sure that the segment amounts match. If you wish "
-            + "to split manually, you can fully disable the autosplitter in the settings. This warning can "
-            + "also be permanently disabled in the options.",
+          "You have enabled " + autosplitCount + " autosplitter segments in the settings but have set up" + (notEnoughActualSegments ? " only " : " ") 
+            + timer.Run.Count + " actual split segments.\n"
+            + "For the autosplitter to work correctly make sure that the segment amounts match. If you wish to split manually, you can fully disable the "
+            + "autosplitter in the settings. This warning can also be permanently disabled in the options.",
           "Darksiders Autosplitter - Differing Segment Count",
           MessageBoxButtons.OK,
           MessageBoxIcon.Warning
@@ -668,8 +667,8 @@ split
           float delta = playerPosition[5];
 
           if (vars.compareFloats(current.playerX, playerPosition[0], delta) && vars.compareFloats(current.playerY, playerPosition[1], delta)
-            && vars.compareFloats(current.playerZ, playerPosition[2], delta) &&
-              vars.compareFloats(current.playerRotationX, playerPosition[3], delta) && vars.compareFloats(current.playerRotationY, playerPosition[4], delta)) {
+            && vars.compareFloats(current.playerZ, playerPosition[2], delta) && vars.compareFloats(current.playerRotationX, playerPosition[3], delta)
+            && vars.compareFloats(current.playerRotationY, playerPosition[4], delta)) {
               vars.currentSplitDelay = segment.Item3;
 
               vars.stopwatch.Start();
