@@ -29,7 +29,7 @@
  */
 
 // Original Version - Steam, Current Version (v1.1)
-state("DarksidersPC")
+state("DarksidersPC", "original_current")
 {
   // Contains a hashed string (HString) that identifies the current Scaleform overlay window  
   ulong scaleformHString : "DarksidersPC.exe", 0x0122F6A4, 0x34, 0x28; 
@@ -61,7 +61,7 @@ state("DarksidersPC")
 }
 
 // Warmastered Edition - Steam, Current Version
-state("darksiders1")
+state("darksiders1", "wme_current")
 {
   ulong scaleformHString : "darksiders1.exe", 0x1EDEB0C, 0x50, 0x28;
 
@@ -494,6 +494,37 @@ init
     return count;
   });
 
+  vars.DetermineGameVersion = (Action) (() => {
+    string md5Hash;
+    using (var md5 = System.Security.Cryptography.MD5.Create()) {
+      using (var executable = File.Open(modules.First().FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+        md5Hash = md5.ComputeHash(executable).Select(hashBytes => hashBytes.ToString("X2")).Aggregate((a, b) => a + b);
+      }
+    }
+
+    switch (md5Hash) {
+      case "2DE2E0C859510B78FACB1B50DBFDBE20":
+        version = "wme_current";
+        break;
+      case "1E5EA833C034B303D94E1DBBA806A882":
+        version = "original_current";
+        break;
+      default:
+        version = "unknown";
+
+        MessageBox.Show(
+          timer.Form,
+          "This game version is currently not supported. The autosplitter only works with the latest version of Darksiders (Warmastered Edition and Original) "
+            + "on Steam.",
+          "Darksiders Autosplitter - Unsupported Game Version",
+          MessageBoxButtons.OK,
+          MessageBoxIcon.Error
+        );
+
+        break;
+    }
+  });
+
   // ==========================================================
   // Game initialization
   // ==========================================================
@@ -503,6 +534,7 @@ init
   }
 
   vars.lastProcessName = game.ProcessName;
+  vars.DetermineGameVersion();
 
   if (!vars.gameExited) {
     vars.filteredSplittableCutscenes = vars.GetFilteredSplittableCutscenes();
@@ -564,6 +596,10 @@ exit
 
 update
 {
+  if (version.Equals("unknown")) {
+    return false;
+  }
+
   if (vars.debug) {
 
     // Debug output to show the HStrings of FMV cutscenes & regular in-game cinematics.
