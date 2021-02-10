@@ -244,7 +244,7 @@ startup
   });
 
   // An adjustable delta is necessary because of LiveSplit's accuracy with respect to certain game situations.
-  vars.compareFloats = (Func<float, float, float, bool>) ((a, b, delta) => {
+  vars.CompareFloats = (Func<float, float, float, bool>) ((a, b, delta) => {
     if (vars.debug) {
       float printDelta = Math.Abs(a - b);
 
@@ -702,9 +702,9 @@ split
           var playerPosition = segment.Item5;
           float delta = playerPosition[5];
 
-          if (vars.compareFloats(current.playerX, playerPosition[0], delta) && vars.compareFloats(current.playerY, playerPosition[1], delta)
-            && vars.compareFloats(current.playerZ, playerPosition[2], delta) && vars.compareFloats(current.playerRotationX, playerPosition[3], delta)
-            && vars.compareFloats(current.playerRotationY, playerPosition[4], delta)) {
+          if (vars.CompareFloats(current.playerX, playerPosition[0], delta) && vars.CompareFloats(current.playerY, playerPosition[1], delta)
+            && vars.CompareFloats(current.playerZ, playerPosition[2], delta) && vars.CompareFloats(current.playerRotationX, playerPosition[3], delta)
+            && vars.CompareFloats(current.playerRotationY, playerPosition[4], delta)) {
               vars.currentSplitDelay = segment.Item3;
 
               vars.stopwatch.Start();
