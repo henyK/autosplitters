@@ -29,7 +29,7 @@
  */
 
 // Original Version - Steam, Current Version (v1.1)
-state("DarksidersPC", "original_current")
+state("DarksidersPC", "Original v1.1")
 {
   // Contains a hashed string (HString) that identifies the current Scaleform overlay window  
   ulong scaleformHString : "DarksidersPC.exe", 0x0122F6A4, 0x34, 0x28; 
@@ -60,8 +60,8 @@ state("DarksidersPC", "original_current")
   ulong spawnRegion : "DarksidersPC.exe", 0x0122E594, 0x63C, 0x18;
 }
 
-// Warmastered Edition - Steam, Current Version
-state("darksiders1", "wme_current")
+// Warmastered Edition - Steam, Current Version (2017/07/11)
+state("darksiders1", "WME v2017_07_11")
 {
   ulong scaleformHString : "darksiders1.exe", 0x1EDEB0C, 0x50, 0x28;
 
@@ -502,15 +502,16 @@ init
       }
     }
 
+    version = "";
     switch (md5Hash) {
       case "2DE2E0C859510B78FACB1B50DBFDBE20":
-        version = "wme_current";
+        version = "WME v2017_07_11";
         break;
       case "1E5EA833C034B303D94E1DBBA806A882":
-        version = "original_current";
+        version = "Original v1.1";
         break;
       default:
-        version = "unknown";
+        version = "Unknown";
 
         MessageBox.Show(
           timer.Form,
@@ -596,7 +597,7 @@ exit
 
 update
 {
-  if (version.Equals("unknown")) {
+  if (version.Equals("Unknown")) {
     return false;
   }
 
