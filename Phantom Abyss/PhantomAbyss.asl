@@ -295,7 +295,7 @@ split
   }
   
   // Split for the pickup of the relic in a temple
-  if (old.templeRelicCollectable && !current.templeRelicCollectable) {
+  if (vars.enteredTemple && old.templeRelicCollectable && !current.templeRelicCollectable) {
     return true;
   }
 
