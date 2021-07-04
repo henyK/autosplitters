@@ -199,12 +199,26 @@ init
       }
     }
   });
+  
+  vars.ShowKnownIssuesWarning = (Action) (() => {
+    MessageBox.Show(
+      timer.Form,
+      "Currently there are some known issues such as the autosplitter splitting multiple times during loading screens as well as not starting "
+      + "properly for the game's tutorial. While these bugs are being fixed usage of the autosplitter is not recommended. Until then you are "
+      + "free to either wait before doing additional runs or just submit your runs using \"Real Time\" so that they can be retimed by the "
+      + "moderation team.",
+      "Phantom Abyss Autosplitter - Known Issues",
+      MessageBoxButtons.OK,
+      MessageBoxIcon.Warning
+    );
+  });
 
   // ==========================================================
   // Game initialization
   // ==========================================================
 
   vars.DetermineGameVersion();
+  vars.ShowKnownIssuesWarning();
   vars.ShowGameTimeWarningIfApplicable();
   vars.ResetVariables();
 }
