@@ -1,4 +1,4 @@
-/* Phantom Abyss Load Remover & Autosplitter v1.0.1
+/* Phantom Abyss Load Remover & Autosplitter v1.1
  * by heny (Thanks to Micrologist for helping with a few things)
  * Tested only with the current version of the game's Steam release
  *
@@ -11,35 +11,35 @@
  * - Automatically splits upon collecting the relic
  */
 
-// Steam, Current Version (2021/07/02, Update 10)
-state("PhantomAbyss-Win64-Shipping", "Build_6970928")
+// Steam, Current Version (2021/07/02, Update 13)
+state("PhantomAbyss-Win64-Shipping", "Build_7245574")
 {  
   // ULoadingScreenWidgetBP_C.MapFill + Offset 1D8
-  int loading : "PhantomAbyss-Win64-Shipping.exe", 0x46A38C0, 0x190, 0x20, 0xDE8, 0x418, 0x1538, 0x1D8;
+  int loading : "PhantomAbyss-Win64-Shipping.exe", 0x46AB200, 0x190, 0x20, 0xDE8, 0x428, 0x1538, 0x1D8;
 
-  // AGod_Hub_Altar_BP_C (0_HUB.HUB.PersistentLevel.God_Hub_Alter_BP_3) [Active God Hub Altar: 0xCAA0]
-  ushort godHubAltar : "PhantomAbyss-Win64-Shipping.exe", 0x46B9940, 0x130, 0x420, 0x670, 0x0;
+  // AGod_Hub_Altar_BP_C (0_HUB.HUB.PersistentLevel.God_Hub_Alter_BP_3) [Active God Hub Altar: 0x3960]
+  ushort godHubAltar : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x670, 0x0;
 
-  // MainMenuGameMode_C [Active Main Menu: 0x0B78]
-  ushort mainMenuGameMode : "PhantomAbyss-Win64-Shipping.exe", 0x4177DA0, 0x0, 0x128, 0x0;
+  // MainMenuGameMode_C [Active Main Menu: 0x79D8]
+  ushort mainMenuGameMode : "PhantomAbyss-Win64-Shipping.exe", 0x417F560, 0x0, 0x128, 0x0;
 
   // AWIBYExplorerCharacter.targetedInteraction
-  long targetedInteraction : "PhantomAbyss-Win64-Shipping.exe", 0x046AD840, 0x0, 0x20, 0x890;
+  long targetedInteraction : "PhantomAbyss-Win64-Shipping.exe", 0x46B5180, 0x0, 0x20, 0x890;
   
   // AWIBYExplorerCharacter.targetedInteraction + Offset 1B0 (Relic Interaction Type: 0xFFF)
-  int targetedInteractionType : "PhantomAbyss-Win64-Shipping.exe", 0x046AD840, 0x0, 0x20, 0x890, 0x1B0;
+  int targetedInteractionType : "PhantomAbyss-Win64-Shipping.exe", 0x46B5180, 0x0, 0x20, 0x890, 0x1B0;
   
-  // UUSerSave.m_numFloorsCompleted
-  int numFloorsCompleted : "PhantomAbyss-Win64-Shipping.exe", 0x46B5408, 0x8, 0x2C8, 0x48;
+  // UUserSave.m_numFloorsCompleted
+  int numFloorsCompleted : "PhantomAbyss-Win64-Shipping.exe", 0x46BCD48, 0x8, 0x2C8, 0x48;
   
   // AHUBWhipSelectPedestalBP_C.whipID (Tutorial Pedestal ID: 0x11322)
-  long whipSelectPedestalID : "PhantomAbyss-Win64-Shipping.exe", 0x046B9940, 0x130, 0x420, 0x488, 0x39C;
+  long whipSelectPedestalID : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x488, 0x39C;
 
   // UCapsuleComponent + Offset 2B0 (0_Tutorial_StartRoom_3.Tutorial_StartRoom_3.PersistentLevel.HUBWhipSelectPedestalBP_3.InteractCapsule)
-  bool tutorialWhipInteractableWith : "PhantomAbyss-Win64-Shipping.exe", 0x4575E68, 0x118, 0x488, 0x290, 0x2B0;
+  bool tutorialWhipInteractableWith : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x488, 0x290, 0x2B0;
   
   // DungeonWideSwitchTracking_C + Offset 180
-  bool brazierLitUp : "PhantomAbyss-Win64-Shipping.exe", 0x46A38C0, 0x30, 0x260, 0xE40, 0x340, 0x180;
+  bool brazierLitUp : "PhantomAbyss-Win64-Shipping.exe", 0x46AB200, 0x30, 0x260, 0xE40, 0x340, 0x180;
 }
 
 startup
@@ -81,7 +81,7 @@ startup
   vars.AddSettings = (Action) (() => {
     settings.Add("splits", true, "Splits");
     settings.Add("templeSplits", true, "Temple", "splits");
-    settings.Add("splitOnFloorChange", true, "Temple Floor Change", "templeSplits");
+    settings.Add("splitOnFloorChange", true, "Floor Change", "templeSplits");
     settings.Add("splitOnBrazierKindling", false, "Braziers", "templeSplits");
     settings.Add("tutorialSplits", true, "Tutorial", "splits");
     settings.Add("splitOnTutorialWhipPickup", false, "Tutorial Whip", "tutorialSplits");
@@ -159,13 +159,13 @@ init
 
     version = "";
     switch (md5Hash) {
-      case "BA523CF86CE25769A2BB10F58F3E521A":
-        version = "Build_6970928";
+      case "FB4CA1AE9FFF363724F37CCC74946D83":
+        version = "Build_7245574";
         break;
       default:
       
         // Using the latest known game version's state descriptor if the detected version is unknown
-        version = "Build_6970928";
+        version = "Build_7245574";
 
         MessageBox.Show(
           timer.Form,
@@ -240,13 +240,13 @@ reset
 update {  
   
   // Check if the main menu is active
-  if (current.mainMenuGameMode == 0x0B78) { 
+  if (current.mainMenuGameMode == 0x79D8) { 
     vars.wasInMainMenu = true;
     vars.enteredTemple = false;
   }
   
   // Transitioning from hub to temple or main menu
-  if (old.godHubAltar == 0xCAA0 && current.godHubAltar == 0) {
+  if (old.godHubAltar == 0x3960 && current.godHubAltar == 0) {
     vars.leftTemple = false;
     vars.enteredTemple = true;
     
@@ -259,7 +259,7 @@ update {
   }
 
   // Transitioning from temple or main menu to hub
-  if (old.godHubAltar == 0 && current.godHubAltar == 0xCAA0) {
+  if (old.godHubAltar == 0 && current.godHubAltar == 0x3960) {
     if (vars.wasInMainMenu) {
       vars.wasInMainMenu = false;
     } else {      
