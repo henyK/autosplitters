@@ -1,4 +1,4 @@
-/* Phantom Abyss Load Remover & Autosplitter v1.1
+/* Phantom Abyss Load Remover & Autosplitter v1.2
  * by heny (Thanks to Micrologist for helping with a few things)
  * Tested only with the current version of the game's Steam release
  *
@@ -283,7 +283,7 @@ split
     vars.relicPickedUp = !memory.ReadValue<bool>(new IntPtr(vars.backupAddr + 0x2B1));
     vars.backupAddr = 0;
 
-    if (vars.relicPickedUp) {
+    if (current.loading == 0 && vars.relicPickedUp) {
       return true;
     }
   }
