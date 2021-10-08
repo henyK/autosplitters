@@ -1,4 +1,4 @@
-/* Phantom Abyss Load Remover & Autosplitter v1.2
+/* Phantom Abyss Load Remover & Autosplitter v1.3
  * by heny (Thanks to Micrologist for helping with a few things)
  * Tested only with the current version of the game's Steam release
  *
@@ -11,36 +11,42 @@
  * - Automatically splits upon collecting the relic
  */
 
-// Steam, Current Version (2021/07/02, Update 13)
-state("PhantomAbyss-Win64-Shipping", "Build_7245574")
+// Steam, Current Version (2021/10/01, Update 18)
+state("PhantomAbyss-Win64-Shipping", "Build_7429581")
 {  
-  // ULoadingScreenWidgetBP_C.MapFill + Offset 1D8
-  int loading : "PhantomAbyss-Win64-Shipping.exe", 0x46AB200, 0x190, 0x20, 0xDE8, 0x428, 0x1538, 0x1D8;
+  // ULoadingScreenWidgetBP_C.HintText + Offset 1D8
+  int loading : "PhantomAbyss-Win64-Shipping.exe", 0x46C4378, 0xDE8, 0x4C0, 0xDB8, 0x1D8;
 
-  // AGod_Hub_Altar_BP_C (0_HUB.HUB.PersistentLevel.God_Hub_Alter_BP_3) [Active God Hub Altar: 0x3960]
-  ushort godHubAltar : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x670, 0x0;
+  // UWIBYHUD_BP_C.loadingPanel.Visibility
+  bool loadingPanelInvisible : "PhantomAbyss-Win64-Shipping.exe", 0x46B1980, 0x30, 0x260, 0xC70, 0x410, 0xC3;
 
-  // MainMenuGameMode_C [Active Main Menu: 0x79D8]
-  ushort mainMenuGameMode : "PhantomAbyss-Win64-Shipping.exe", 0x417F560, 0x0, 0x128, 0x0;
+  // AGod_Hub_Altar_BP_C (0_HUB.HUB.PersistentLevel.God_Hub_Alter_BP_3) [Active God Hub Altar: 0x97E0]
+  ushort godHubAltar : "PhantomAbyss-Win64-Shipping.exe", 0x46C7A00, 0x130, 0x420, 0x670, 0x0;
+
+  // MainMenuGameMode_C [Active Main Menu: 0xD858]
+  ushort mainMenuGameMode : "PhantomAbyss-Win64-Shipping.exe", 0x40C9A00, 0x0, 0x128, 0x0;
 
   // AWIBYExplorerCharacter.targetedInteraction
-  long targetedInteraction : "PhantomAbyss-Win64-Shipping.exe", 0x46B5180, 0x0, 0x20, 0x890;
-  
-  // AWIBYExplorerCharacter.targetedInteraction + Offset 1B0 (Relic Interaction Type: 0xFFF)
-  int targetedInteractionType : "PhantomAbyss-Win64-Shipping.exe", 0x46B5180, 0x0, 0x20, 0x890, 0x1B0;
+  long targetedInteraction : "PhantomAbyss-Win64-Shipping.exe", 0x46B1980, 0x30, 0x250, 0x890;
+
+  // AWIBYExplorerCharacter.targetedInteraction + Offset 20C [Relic: 0x0E]
+  ushort targetedInteractionType : "PhantomAbyss-Win64-Shipping.exe", 0x46B1980, 0x30, 0x250, 0x890, 0x20C;
+
+  // AWIBYExplorerCharacter.targetedInteraction + Offset 2A9 [Relic collected]
+  bool relicCanBePickedUp : "PhantomAbyss-Win64-Shipping.exe", 0x46B1980, 0x30, 0x250, 0x890, 0x2A9;
   
   // UUserSave.m_numFloorsCompleted
-  int numFloorsCompleted : "PhantomAbyss-Win64-Shipping.exe", 0x46BCD48, 0x8, 0x2C8, 0x48;
+  int numFloorsCompleted : "PhantomAbyss-Win64-Shipping.exe", 0x46C34C8, 0x8, 0x360, 0x48;
+
+  // DungeonWideSwitchTracking_C + Offset 178
+  bool brazierLitUp : "PhantomAbyss-Win64-Shipping.exe", 0x46B1980, 0x30, 0x250, 0x850, 0x2F0, 0x60, 0x20, 0x180;
   
-  // AHUBWhipSelectPedestalBP_C.whipID (Tutorial Pedestal ID: 0x11322)
-  long whipSelectPedestalID : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x488, 0x39C;
+  // AHUBWhipSelectPedestalBP_C.whipID [Tutorial Pedestal: 0x11322]
+  long whipSelectPedestalWhipID : "PhantomAbyss-Win64-Shipping.exe", 0x46C7A00, 0x130, 0x420, 0x488, 0x39C;
 
   // UCapsuleComponent + Offset 2B0 (0_Tutorial_StartRoom_3.Tutorial_StartRoom_3.PersistentLevel.HUBWhipSelectPedestalBP_3.InteractCapsule)
-  bool tutorialWhipInteractableWith : "PhantomAbyss-Win64-Shipping.exe", 0x46C1280, 0x130, 0x420, 0x488, 0x290, 0x2B0;
-  
-  // DungeonWideSwitchTracking_C + Offset 180
-  bool brazierLitUp : "PhantomAbyss-Win64-Shipping.exe", 0x46AB200, 0x30, 0x260, 0xE40, 0x340, 0x180;
-}
+  bool tutorialWhipInteractableWith : "PhantomAbyss-Win64-Shipping.exe", 0x46C7A00, 0x130, 0x420, 0x488, 0x290, 0x2B0;
+  }
 
 startup
 {
@@ -74,7 +80,6 @@ startup
     vars.enteredTemple = false;
     vars.enteredTutorial = false;
     vars.leftTemple = false;
-    vars.relicPickedUp = false;
     vars.backupAddr = 0;
   });
 
@@ -126,23 +131,24 @@ init
     if (settings["debugOptions"]) {
       if (settings["showLoadingDebugInfo"]) {
         vars.DebugInLayout("loading", current.loading.ToString());
+        vars.DebugInLayout("loadingPanelInvisible", current.loadingPanelInvisible.ToString());
       }
     
       if (settings["showAreaDebugInfo"]) {
-        vars.DebugInLayout("wasInMainMenu", vars.wasInMainMenu.ToString());
         vars.DebugInLayout("godHubAltar", current.godHubAltar.ToString("X"));
+        vars.DebugInLayout("wasInMainMenu", vars.wasInMainMenu.ToString());
         vars.DebugInLayout("enteredTemple", vars.enteredTemple.ToString());
         vars.DebugInLayout("enteredTutorial", vars.enteredTutorial.ToString());
         vars.DebugInLayout("leftTemple", vars.leftTemple.ToString());
-        vars.DebugInLayout("whipSelectPedestalID", current.whipSelectPedestalID.ToString("X"));
+        vars.DebugInLayout("whipSelectPedestalWhipID", current.whipSelectPedestalWhipID.ToString("X"));
       }
     
       if (settings["showSplittingDebugInfo"]) {
         vars.DebugInLayout("targetedInteraction", current.targetedInteraction.ToString("X"));
         vars.DebugInLayout("targetedInteractionType", current.targetedInteractionType.ToString("X"));
-        vars.DebugInLayout("numFloorsCompleted", current.numFloorsCompleted.ToString()); 
+        vars.DebugInLayout("relicCanBePickedUp", current.relicCanBePickedUp.ToString());
+        vars.DebugInLayout("numFloorsCompleted", current.numFloorsCompleted.ToString());
         vars.DebugInLayout("brazierLitUp", current.brazierLitUp.ToString());
-        vars.DebugInLayout("relicPickedUp", vars.relicPickedUp.ToString());
         vars.DebugInLayout("tutorialWhipInteractableWith", current.tutorialWhipInteractableWith.ToString());
       }
     }
@@ -159,13 +165,14 @@ init
 
     version = "";
     switch (md5Hash) {
-      case "FB4CA1AE9FFF363724F37CCC74946D83":
-        version = "Build_7245574";
+      case "B81DA415D8B4A57CFF5A3339DBBD663D":
+        version = "Build_7458269";
+        
         break;
       default:
       
         // Using the latest known game version's state descriptor if the detected version is unknown
-        version = "Build_7245574";
+        version = "Build_7458269";
 
         MessageBox.Show(
           timer.Form,
@@ -217,7 +224,7 @@ start
 {
   bool startTimer = false;
   
-  vars.enteredTutorial = (current.whipSelectPedestalID == 0x11322);
+  vars.enteredTutorial = (current.whipSelectPedestalWhipID == 0x11322);
   if ((vars.enteredTemple || vars.enteredTutorial) && (old.loading != 0 && current.loading == 0)) {
     vars.wasInMainMenu = false;
     startTimer = true;
@@ -240,13 +247,13 @@ reset
 update {  
   
   // Check if the main menu is active
-  if (current.mainMenuGameMode == 0x79D8) { 
+  if (current.mainMenuGameMode == 0xD858) { 
     vars.wasInMainMenu = true;
     vars.enteredTemple = false;
   }
   
   // Transitioning from hub to temple or main menu
-  if (old.godHubAltar == 0x3960 && current.godHubAltar == 0) {
+  if (old.godHubAltar == 0x97E0 && current.godHubAltar == 0) {
     vars.leftTemple = false;
     vars.enteredTemple = true;
     
@@ -259,7 +266,7 @@ update {
   }
 
   // Transitioning from temple or main menu to hub
-  if (old.godHubAltar == 0 && current.godHubAltar == 0x3960) {
+  if (old.godHubAltar == 0 && current.godHubAltar == 0x97E0) {
     if (vars.wasInMainMenu) {
       vars.wasInMainMenu = false;
     } else {      
@@ -273,31 +280,23 @@ update {
 
 isLoading
 {
-  return current.loading != 0;
+  return current.loading != 0 || !current.loadingPanelInvisible;
 }
 
 split
 {
-  // Check if the object last interacted with was a relic
-  if (current.targetedInteraction != old.targetedInteraction && vars.backupAddr != 0) {
-    vars.relicPickedUp = !memory.ReadValue<bool>(new IntPtr(vars.backupAddr + 0x2B1));
-    vars.backupAddr = 0;
 
-    if (current.loading == 0 && vars.relicPickedUp) {
+  // Split for the pickup of a relic or sandbag
+  if (current.targetedInteractionType == 0x0E && old.relicCanBePickedUp && !current.relicCanBePickedUp) {
+    if (current.loading == 0 && current.loadingPanelInvisible) {
       return true;
     }
-  }
-
-  // Remember the address AWIBYExplorerCharacter.m_targetedInteraction points to as the pointer is immediately not working anymore when
-  // an interaction is triggered. We need this address afterwards to determine if the object interacted with actually was a relic.
-  if (current.targetedInteractionType == 0xFFF) {
-    vars.backupAddr = current.targetedInteraction;
   }
   
   // Split for the pickup of the tutorial whip
   if (settings["splitOnTutorialWhipPickup"]) {    
     if (old.tutorialWhipInteractableWith && !current.tutorialWhipInteractableWith) {      
-      vars.enteredTutorial = (current.whipSelectPedestalID == 0x11322);
+      vars.enteredTutorial = (current.whipSelectPedestalWhipID == 0x11322);
       if (vars.enteredTutorial) {
         return true;
       }
@@ -307,12 +306,14 @@ split
   // Split for the kindling of braziers
   if (settings["splitOnBrazierKindling"] && vars.enteredTemple) {    
     if (!old.brazierLitUp && current.brazierLitUp) {
-      return true;
+      if (current.loading == 0 && current.loadingPanelInvisible) {
+        return true;
+      }
     }
   }
 
   // Split upon changing the temple's floor
-  if (settings["splitOnFloorChange"] && !vars.relicPickedUp) {    
+  if (settings["splitOnFloorChange"]) {    
     if (old.numFloorsCompleted < current.numFloorsCompleted) {
       return true;
     }
